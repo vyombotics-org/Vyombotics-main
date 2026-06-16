@@ -14,15 +14,23 @@ async function assertAdmin(supabaseAdmin: any, userId: string) {
 
 /** Public — list active products for the storefront. */
 export const listShopProducts = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("shop_products")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
-  return { products: data ?? [] };
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("shop_products")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("[listShopProducts] Database query error:", error);
+      return { products: [] };
+    }
+    return { products: data ?? [] };
+  } catch (err) {
+    console.error("[listShopProducts] Failed to fetch products:", err);
+    return { products: [] };
+  }
 });
 
 /** Admin — list all (active + inactive). */

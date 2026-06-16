@@ -20,15 +20,23 @@ export type SiteSettingsMap = Partial<Record<SettingKey, any>>;
 
 /** Public read — no auth required. Returns a key→value map. */
 export const getSiteSettings = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("site_settings")
-    .select("key, value")
-    .in("key", ALLOWED_KEYS as unknown as string[]);
-  if (error) throw new Error(error.message);
-  const map: SiteSettingsMap = {};
-  for (const row of data ?? []) map[row.key as SettingKey] = row.value;
-  return { settings: map };
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ALLOWED_KEYS as unknown as string[]);
+    if (error) {
+      console.error("[getSiteSettings] Database query error:", error);
+      return { settings: {} };
+    }
+    const map: SiteSettingsMap = {};
+    for (const row of data ?? []) map[row.key as SettingKey] = row.value;
+    return { settings: map };
+  } catch (err) {
+    console.error("[getSiteSettings] Failed to fetch settings:", err);
+    return { settings: {} };
+  }
 });
 
 const UpsertInput = z.object({
