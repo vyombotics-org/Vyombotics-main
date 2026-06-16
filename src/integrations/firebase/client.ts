@@ -17,6 +17,14 @@ const firebaseConfig = {
     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || process.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  const missing = [
+    ...(!firebaseConfig.apiKey ? ["VITE_FIREBASE_API_KEY"] : []),
+    ...(!firebaseConfig.projectId ? ["VITE_FIREBASE_PROJECT_ID"] : []),
+  ];
+  console.error(`[Firebase Client] Missing configuration variables: ${missing.join(", ")}. Please check your .env settings.`);
+}
+
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 export const auth = getAuth(app);
