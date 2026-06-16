@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "courses": "Courses",
+    "features": "Features",
+    "faculty": "Faculty",
+    "reviews": "Feedback",
+    "faq": "FAQ",
+    "login": "Log in",
+    "signup": "Register",
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "studio": "Studio",
+    "signout": "Sign out"
+  },
+  "common": {
+    "language": "Language",
+    "theme": "Theme",
+    "by": "by"
+  },
+  "home": {
+    "badge": "Future Education & Teacher Training · 2026",
+    "heroTitle1": "Shaping",
+    "heroTitle2": "Future Innovators &",
+    "heroHighlight": "Future Educators",
+    "heroDesc": "Vyombotics Academy empowers students and teachers with hands-on Robotics, AI, Coding, Electronics and IoT — built for the future of education.",
+    "startLearning": "Start Learning",
+    "exploreCourses": "Explore Programs",
+    "lovedBy": "Trusted by 5,000+ students & 1,000+ teachers",
+    "stats": {
+      "students": "Students Empowered",
+      "lessons": "Teachers Trained",
+      "projects": "Schools Reached",
+      "success": "Satisfaction Rate"
+    },
+    "featuredCourses": "Featured",
+    "coursesWord": "Programs",
+    "featuredDesc": "Robotics, AI, Coding & IoT programs for students, teachers and schools",
+    "enroll": "Enroll",
+    "whyTitle": "Why",
+    "facultyBadge": "Learn from the best in the industry",
+    "facultyTitle": "Meet our",
+    "facultyHighlight": "Faculty & Experts",
+    "facultyDesc": "Mentors who have shipped products at world-class companies — now teaching you the craft.",
+    "experience": "experience",
+    "testimonialsTitle": "Learners. Now",
+    "testimonialsHighlight": "Engineers.",
+    "faqTitle": "Questions?",
+    "faqHighlight": "Answered.",
+    "ctaTitle1": "Your career upgrade",
+    "ctaHighlight": "starts today",
+    "ctaDesc": "Join 10,000+ learners already building real-world skills.",
+    "createAccount": "Create Free Account",
+    "footerTagline": "Future Education & Teacher Training. Empowering students, educators and schools with Robotics, AI, Coding and IoT.",
+    "platform": "Platform",
+    "company": "Company",
+    "about": "About",
+    "careers": "Careers",
+    "contact": "Contact",
+    "copyright": "© 2026 Vyombotics Academy of Future Education. Crafted in India.",
+    "courseDuration": {
+      "weeks": "weeks"
+    },
+    "tags": {
+      "Bestseller": "Bestseller",
+      "Trending": "Trending",
+      "Popular": "Popular"
+    },
+    "features": {
+      "liveMentorship": "Live Mentorship",
+      "liveMentorshipDesc": "Weekly 1-on-1 sessions with industry experts who've shipped at top startups.",
+      "certificates": "Verified Certificates",
+      "certificatesDesc": "Blockchain-verified credentials that recruiters actually trust.",
+      "projects": "Real Projects",
+      "projectsDesc": "Build 10+ portfolio-grade projects you can show in interviews.",
+      "placement": "Placement Support",
+      "placementDesc": "Dedicated career coach, mock interviews, and direct hiring partners."
+    },
+    "faq": {
+      "q1": "How does batch validity work?",
+      "a1": "Each batch comes with 30 or 45 days of full access depending on the program. You can renew anytime from your dashboard.",
+      "q2": "Are certificates recognized by employers?",
+      "a2": "Yes — our certificates are blockchain-verified and trusted by 500+ hiring partners including top startups.",
+      "q3": "Can I get a refund?",
+      "a3": "Yes, full refund within 7 days of purchase, no questions asked.",
+      "q4": "Do you offer placement support?",
+      "a4": "Every paid program includes a dedicated career coach, mock interviews, and direct introductions to hiring partners.",
+      "q5": "Is there a mobile app?",
+      "a5": "Web platform works perfectly on mobile. Native apps for iOS and Android coming Q1 2027."
+    }
+  }
+}
