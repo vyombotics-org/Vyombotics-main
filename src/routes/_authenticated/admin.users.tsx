@@ -167,7 +167,7 @@ function AdminUsers() {
                 <tbody>
                   {(usersQ.data?.users ?? []).map((u: any) => {
                     const has = (r: string) => u.roles.includes(r);
-                    const isMe = u.id === user?.id;
+                    const isMe = u.id === user?.uid;
                     return (
                       <tr key={u.id} className="border-t border-border/40">
                         <td className="px-4 py-3">

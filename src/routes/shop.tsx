@@ -48,8 +48,11 @@ function ShopPage() {
   const [cat, setCat] = useState("all");
 
   const all = data?.products ?? [];
-  const categories = useMemo(
-    () => ["all", ...Array.from(new Set(all.map((p: any) => p.category).filter(Boolean)))],
+  const categories = useMemo<string[]>(
+    () => [
+      "all",
+      ...(Array.from(new Set(all.map((p: any) => p.category).filter(Boolean))) as string[]),
+    ],
     [all],
   );
   const filtered = all.filter((p: any) => {

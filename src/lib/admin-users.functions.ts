@@ -55,9 +55,9 @@ export const listUsersWithRoles = createServerFn({ method: "GET" })
       page: 1,
       perPage: 200,
     });
-    if (aErr) throw new Error(aErr.message);
+    if (aErr || !authUsers) throw new Error(aErr?.message || "Failed to list users");
 
-    const ids = authUsers.users.map((u) => u.id);
+    const ids = authUsers.users.map((u: any) => u.id);
     const [{ data: profiles }, { data: roles }] = await Promise.all([
       supabaseAdmin.from("profiles").select("id, full_name, avatar_url").in("id", ids),
       supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", ids),
@@ -72,7 +72,7 @@ export const listUsersWithRoles = createServerFn({ method: "GET" })
     const profileMap = new Map<string, any>();
     (profiles ?? []).forEach((p: any) => profileMap.set(p.id, p));
 
-    const users = authUsers.users.map((u) => ({
+    const users = authUsers.users.map((u: any) => ({
       id: u.id,
       email: u.email ?? "",
       full_name: profileMap.get(u.id)?.full_name ?? u.email?.split("@")[0] ?? "",

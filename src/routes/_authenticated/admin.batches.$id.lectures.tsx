@@ -24,7 +24,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { storage } from "@/integrations/firebase/client";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   getBatchAdmin,
   listLecturesForBatch,
@@ -92,16 +93,13 @@ function AdminLectures() {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || "mp4";
-      const path = `${batchId}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("lecture-videos")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (error) throw error;
-      const { data: signed } = await supabase.storage
-        .from("lecture-videos")
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
-      if (!signed?.signedUrl) throw new Error("Could not get URL");
-      setEditing({ ...editing, video_url: signed.signedUrl });
+      const path = `lecture-videos/${batchId}/${crypto.randomUUID()}.${ext}`;
+      const storageRef = ref(storage, path);
+      const uploadResult = await uploadBytes(storageRef, file, {
+        contentType: file.type,
+      });
+      const downloadUrl = await getDownloadURL(uploadResult.ref);
+      setEditing({ ...editing, video_url: downloadUrl });
       toast.success("Video uploaded");
     } catch (e: any) {
       toast.error(e?.message || "Upload failed");

@@ -20,7 +20,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { storage } from "@/integrations/firebase/client";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { adminListCourses, upsertCourse, deleteCourse } from "@/lib/courses.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/courses/")({
@@ -93,15 +94,12 @@ function AdminCourses() {
     try {
       const ext = file.name.split(".").pop() || "jpg";
       const path = `covers/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("course-thumbnails")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (error) throw error;
-      const { data: signed } = await supabase.storage
-        .from("course-thumbnails")
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
-      if (!signed?.signedUrl) throw new Error("Could not get URL");
-      setEditing((c) => (c ? { ...c, thumbnail_url: signed.signedUrl } : c));
+      const storageRef = ref(storage, path);
+      const uploadResult = await uploadBytes(storageRef, file, {
+        contentType: file.type,
+      });
+      const downloadUrl = await getDownloadURL(uploadResult.ref);
+      setEditing((c) => (c ? { ...c, thumbnail_url: downloadUrl } : c));
       toast.success("Image uploaded");
     } catch (e: any) {
       toast.error(e?.message || "Upload failed");

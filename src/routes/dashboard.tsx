@@ -58,7 +58,7 @@ function Dashboard() {
     );
   }
 
-  const name = (user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "Learner";
+  const name = user.displayName || user.email?.split("@")[0] || "Learner";
   const showClaim = !!user && existsData && !existsData.exists && primaryRole !== "admin";
 
   return (
@@ -332,12 +332,12 @@ function MyBatches() {
                 )}
               </div>
             </Link>
-            {paid && user?.id && (
+            {paid && user?.uid && (
               <div className="mt-3 flex justify-end">
                 <Button asChild size="sm" variant="outline">
                   <Link
                     to="/reports/$batchId/$userId"
-                    params={{ batchId: e.batches?.id, userId: user.id }}
+                    params={{ batchId: e.batches?.id, userId: user.uid }}
                   >
                     View Progress Report →
                   </Link>

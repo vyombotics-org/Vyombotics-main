@@ -1,49 +1,41 @@
 import { useEffect, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { auth, db } from "@/integrations/firebase/client";
 
 export type AppRole = "admin" | "instructor" | "student";
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        // Defer DB call to avoid deadlock
-        setTimeout(() => {
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", s.user.id)
-            .then(({ data }) => setRoles((data ?? []).map((r) => r.role as AppRole)));
-        }, 0);
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      if (u) {
+        try {
+          const q = query(collection(db, "user_roles"), where("user_id", "==", u.uid));
+          const snapshot = await getDocs(q);
+          const userRoles: AppRole[] = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.role) {
+              userRoles.push(data.role as AppRole);
+            }
+          });
+          setRoles(userRoles);
+        } catch (err) {
+          console.error("Error fetching user roles from Firestore:", err);
+          setRoles(["student"]); // Default fallback role
+        }
       } else {
         setRoles([]);
-      }
-    });
-
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", s.user.id)
-          .then(({ data }) => setRoles((data ?? []).map((r) => r.role as AppRole)));
       }
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   const hasRole = (r: AppRole) => roles.includes(r);
@@ -52,6 +44,9 @@ export function useAuth() {
     : roles.includes("instructor")
       ? "instructor"
       : "student";
+
+  // Emulate Supabase session shape
+  const session = user ? { user } : null;
 
   return { session, user, roles, primaryRole, hasRole, loading };
 }

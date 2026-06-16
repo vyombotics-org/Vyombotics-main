@@ -73,7 +73,7 @@ export const issueCertificate = createServerFn({ method: "POST" })
       const passedSet = new Set(
         (attempts ?? []).filter((a: any) => a.passed).map((a: any) => a.quiz_id),
       );
-      const allPassed = qids.every((id) => passedSet.has(id));
+      const allPassed = qids.every((id: any) => passedSet.has(id));
       if (!allPassed) throw new Error("Pass all published quizzes first");
     }
 

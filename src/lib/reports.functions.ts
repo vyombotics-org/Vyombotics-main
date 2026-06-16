@@ -142,11 +142,13 @@ export const getStudentReport = createServerFn({ method: "GET" })
         feedback: sub?.feedback ?? null,
       };
     });
-    const gradedAssignments = assignmentRows.filter((a) => a.marks_awarded != null);
+    const gradedAssignments = assignmentRows.filter((a: any) => a.marks_awarded != null);
     const avgAssignment = gradedAssignments.length
       ? Math.round(
-          gradedAssignments.reduce((s, a) => s + (a.marks_awarded! / (a.max_marks || 1)) * 100, 0) /
-            gradedAssignments.length,
+          gradedAssignments.reduce(
+            (s: any, a: any) => s + (a.marks_awarded! / (a.max_marks || 1)) * 100,
+            0,
+          ) / gradedAssignments.length,
         )
       : 0;
 
@@ -165,9 +167,11 @@ export const getStudentReport = createServerFn({ method: "GET" })
         passed: !!best?.passed,
       };
     });
-    const passedQuizzes = quizRows.filter((q) => q.passed).length;
+    const passedQuizzes = quizRows.filter((q: any) => q.passed).length;
     const avgQuiz = quizRows.length
-      ? Math.round(quizRows.reduce((s, q) => s + (q.best_score ?? 0), 0) / quizRows.length)
+      ? Math.round(
+          quizRows.reduce((s: any, q: any) => s + (q.best_score ?? 0), 0) / quizRows.length,
+        )
       : 0;
 
     const questionsAsked = (discussions ?? []).filter((d: any) => !d.parent_id).length;

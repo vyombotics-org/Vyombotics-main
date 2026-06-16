@@ -15,7 +15,7 @@ export const getStudentStats = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .eq("payment_status", "success");
     const active = (enrollments ?? []).filter(
-      (e) => !e.expires_at || new Date(e.expires_at) > new Date(),
+      (e: any) => !e.expires_at || new Date(e.expires_at) > new Date(),
     );
 
     // Watched seconds → hours learned
@@ -23,7 +23,7 @@ export const getStudentStats = createServerFn({ method: "GET" })
       .from("lecture_progress")
       .select("watched_seconds, completed, updated_at")
       .eq("user_id", userId);
-    const watchedSec = (progress ?? []).reduce((s, p) => s + (p.watched_seconds || 0), 0);
+    const watchedSec = (progress ?? []).reduce((s: any, p: any) => s + (p.watched_seconds || 0), 0);
     const hoursLearned = Math.round((watchedSec / 3600) * 10) / 10;
 
     // Certificates
@@ -34,7 +34,7 @@ export const getStudentStats = createServerFn({ method: "GET" })
 
     // Day streak — distinct days of activity in lecture_progress.updated_at, counting back from today
     const days = new Set<string>(
-      (progress ?? []).map((p) => p.updated_at?.slice(0, 10)).filter(Boolean) as string[],
+      (progress ?? []).map((p: any) => p.updated_at?.slice(0, 10)).filter(Boolean) as string[],
     );
     let streak = 0;
     const day = new Date();

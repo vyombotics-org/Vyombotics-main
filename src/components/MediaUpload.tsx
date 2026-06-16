@@ -3,7 +3,8 @@ import { Loader2, Upload, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
+import { storage } from "@/integrations/firebase/client";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
 
@@ -16,7 +17,7 @@ type Props = {
 };
 
 /**
- * Upload a file to the `site-media` bucket and return a long-lived signed URL,
+ * Upload a file to Firebase Storage and return the download URL,
  * OR paste a URL manually. Either works.
  */
 export function MediaUpload({
@@ -34,17 +35,15 @@ export function MediaUpload({
     try {
       const ext = file.name.split(".").pop() || "bin";
       const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("site-media").upload(path, file, {
+      const storageRef = ref(storage, path);
+
+      const uploadResult = await uploadBytes(storageRef, file, {
         contentType: file.type,
-        cacheControl: "31536000",
-        upsert: false,
+        cacheControl: "public,max-age=31536000",
       });
-      if (error) throw error;
-      const { data, error: signErr } = await supabase.storage
-        .from("site-media")
-        .createSignedUrl(path, TEN_YEARS);
-      if (signErr || !data?.signedUrl) throw signErr ?? new Error("Could not sign URL");
-      onChange(data.signedUrl);
+
+      const downloadUrl = await getDownloadURL(uploadResult.ref);
+      onChange(downloadUrl);
       toast.success("Uploaded");
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");

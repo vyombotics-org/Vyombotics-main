@@ -4,7 +4,7 @@ import vyomboticsLogo from "@/assets/vyombotics-logo.png.asset.json";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/integrations/firebase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -15,7 +15,7 @@ export function SiteNav() {
   const { t } = useTranslation();
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await auth.signOut();
     navigate({ to: "/" });
   };
 

@@ -12,7 +12,7 @@ export const listMyNotifications = createServerFn({ method: "GET" })
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false })
       .limit(50);
-    const unread = (data ?? []).filter((n) => !n.is_read).length;
+    const unread = (data ?? []).filter((n: any) => !n.is_read).length;
     return { notifications: data ?? [], unread };
   });
 

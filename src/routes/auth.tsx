@@ -7,8 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+import { auth, db } from "@/integrations/firebase/client";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  updateProfile,
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -50,10 +58,14 @@ function AuthPage() {
   const [otp, setOtp] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
-      else setCheckingSession(false);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        navigate({ to: "/dashboard" });
+      } else {
+        setCheckingSession(false);
+      }
     });
+    return () => unsubscribe();
   }, [navigate]);
 
   const passed = useMemo(() => rules.map((r) => r.test(password)), [password]);
@@ -74,27 +86,25 @@ function AuthPage() {
           setLoading(false);
           return;
         }
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { full_name: fullName },
-          },
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCred.user, { displayName: fullName });
+
+        // Save default student role in Firestore
+        const roleRef = doc(db, "user_roles", userCred.user.uid);
+        await setDoc(roleRef, {
+          user_id: userCred.user.uid,
+          role: "student",
+          created_at: new Date().toISOString(),
         });
-        if (error) throw error;
+
         toast.success("Account created! Welcome to Vyombotics 🚀");
         navigate({ to: "/dashboard" });
       } else if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await signInWithEmailAndPassword(auth, email, password);
         toast.success("Welcome back!");
         navigate({ to: "/dashboard" });
       } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth?mode=login`,
-        });
-        if (error) throw error;
+        await sendPasswordResetEmail(auth, email);
         toast.success("Password reset link sent to your email");
         setMode("login");
       }
@@ -107,11 +117,26 @@ function AuthPage() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
-    });
-    if (res.error) {
-      toast.error("Google sign-in failed");
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCred = await signInWithPopup(auth, provider);
+
+      // Ensure role exists in Firestore
+      const roleRef = doc(db, "user_roles", userCred.user.uid);
+      const roleSnap = await getDoc(roleRef);
+      if (!roleSnap.exists()) {
+        await setDoc(roleRef, {
+          user_id: userCred.user.uid,
+          role: "student",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      toast.success("Welcome back!");
+      navigate({ to: "/dashboard" });
+    } catch (err: any) {
+      toast.error(err.message ?? "Google sign-in failed");
+    } finally {
       setLoading(false);
     }
   };
@@ -119,44 +144,18 @@ function AuthPage() {
   const normalizePhone = (p: string) => {
     const trimmed = p.trim().replace(/\s|-/g, "");
     if (trimmed.startsWith("+")) return trimmed;
-    if (/^\d{10}$/.test(trimmed)) return "+91" + trimmed; // default India
+    if (/^\d{10}$/.test(trimmed)) return "+91" + trimmed;
     return trimmed;
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ph = normalizePhone(phone);
-    if (!/^\+\d{8,15}$/.test(ph)) {
-      toast.error("Enter a valid phone number with country code");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({ phone: ph });
-      if (error) throw error;
-      setOtpSent(true);
-      toast.success("OTP sent to " + ph);
-    } catch (err: any) {
-      toast.error(err.message ?? "Could not send OTP. SMS provider may not be configured.");
-    } finally {
-      setLoading(false);
-    }
+    toast.error("Phone OTP is not available. Please sign in with Email or Google.");
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const ph = normalizePhone(phone);
-      const { error } = await supabase.auth.verifyOtp({ phone: ph, token: otp, type: "sms" });
-      if (error) throw error;
-      toast.success("Welcome!");
-      navigate({ to: "/dashboard" });
-    } catch (err: any) {
-      toast.error(err.message ?? "Invalid OTP");
-    } finally {
-      setLoading(false);
-    }
+    toast.error("Phone OTP is not available. Please sign in with Email or Google.");
   };
 
   if (checkingSession) {

@@ -317,7 +317,7 @@ function LearnPage() {
         </div>
 
         <QuizzesSection batchId={batchId} />
-        {active && user && <LectureDiscussions lectureId={active.id} currentUserId={user.id} />}
+        {active && user && <LectureDiscussions lectureId={active.id} currentUserId={user.uid} />}
       </div>
     </div>
   );
