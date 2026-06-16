@@ -1,0 +1,1 @@
+import{j as o}from"./index-DJwIvNNf.js";import{E as m}from"./courses.index-Bx9nc88C.js";import"./SiteNav-B7gZD7sS.js";import"./vyombotics-logo.png.asset-DhU37Ufv.js";import"./button-D94v1ji1.js";import"./useServerFn-DZevBWUc.js";import"./index-ufTuicd7.js";import"./loader-circle-1h_rWRY0.js";const E=({error:r})=>o.jsx(m,{message:r.message});export{E as errorComponent};

@@ -1,0 +1,1 @@
+import{H as a,r as c,ac as e}from"./index-DJwIvNNf.js";function n(o){const t=a();return c.useCallback(async(...s)=>{try{const r=await o(...s);if(e(r))throw r;return r}catch(r){if(e(r))return r.options._fromLocation=t.stores.location.get(),t.navigate(t.resolveRedirect(r).options);throw r}},[t,o])}export{n as u};
