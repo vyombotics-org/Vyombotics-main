@@ -1,1 +1,0 @@
-import{j as o}from"./index-Bx9xAtok.js";import{E as m}from"./shop-BAWMEEsf.js";import"./SiteNav-DcHP7d_2.js";import"./button-BCqiW-c1.js";import"./useServerFn-Cj_lQMXG.js";import"./index-DZG-VbNW.js";import"./loader-circle-CspY1Cc7.js";const x=({error:r})=>o.jsx(m,{message:r.message});export{x as errorComponent};
