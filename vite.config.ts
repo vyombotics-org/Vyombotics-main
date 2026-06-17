@@ -14,6 +14,18 @@ export default defineConfig({
   },
   nitro: {
     preset: "vercel",
+    externals: {
+      external: [
+        "firebase-admin",
+        "firebase-admin/app",
+        "firebase-admin/auth",
+        "firebase-admin/firestore",
+        "firebase-admin/storage",
+        "google-gax",
+        "@google-cloud/firestore",
+        "@google-cloud/storage"
+      ]
+    }
   },
 });
 
