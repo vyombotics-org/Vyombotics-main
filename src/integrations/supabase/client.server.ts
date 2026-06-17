@@ -1,4 +1,19 @@
-import { adminDb, adminAuth } from "@/integrations/firebase/client.server";
+import { db } from "@/integrations/firebase/client";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit as firestoreLimit,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  writeBatch
+} from "firebase/firestore";
 
 class QueryBuilder {
   private table: string;
@@ -45,7 +60,7 @@ class QueryBuilder {
   }
 
   async get() {
-    let ref: any = adminDb.collection(this.table);
+    const constraints: any[] = [];
 
     const hasEmptyInFilter = this.filters.some(
       (f) => f.op === "in" && (!Array.isArray(f.value) || f.value.length === 0),
@@ -58,26 +73,28 @@ class QueryBuilder {
     }
 
     for (const f of this.filters) {
-      ref = ref.where(f.field, f.op as any, f.value);
+      constraints.push(where(f.field, f.op as any, f.value));
     }
 
     if (this.orderField) {
-      ref = ref.orderBy(this.orderField, this.orderAscending ? "asc" : "desc");
+      constraints.push(orderBy(this.orderField, this.orderAscending ? "asc" : "desc"));
     }
 
     if (this.limitCount !== null) {
-      ref = ref.limit(this.limitCount);
+      constraints.push(firestoreLimit(this.limitCount));
     }
 
     try {
-      const snapshot = await ref.get();
+      const collectionRef = collection(db, this.table);
+      const q = query(collectionRef, ...constraints);
+      const snapshot = await getDocs(q);
 
       if (this.countOption) {
         return { count: snapshot.size, data: null, error: null };
       }
 
       const results: any[] = [];
-      snapshot.forEach((doc: any) => {
+      snapshot.forEach((doc) => {
         results.push({ id: doc.id, ...doc.data() });
       });
 
@@ -142,7 +159,8 @@ class QueryBuilder {
     if (ids.length === 0) return;
 
     try {
-      const refSnapshot = await adminDb.collection(refTable).where("__name__", "in", ids).get();
+      const q = query(collection(db, refTable), where("__name__", "in", ids));
+      const refSnapshot = await getDocs(q);
       const refMap = new Map();
       refSnapshot.forEach((doc: any) => {
         refMap.set(doc.id, { id: doc.id, ...doc.data() });
@@ -177,20 +195,19 @@ class WriteBuilder {
   }
 
   async insert(payload: any | any[]) {
-    const collectionRef = adminDb.collection(this.table);
+    const collectionRef = collection(db, this.table);
     const payloads = Array.isArray(payload) ? payload : [payload];
     const results: any[] = [];
     try {
       for (const p of payloads) {
-        let docRef;
         if (p.id) {
-          docRef = collectionRef.doc(p.id);
+          const docRef = doc(db, this.table, p.id);
           const data = { ...p };
           delete data.id;
-          await docRef.set(data);
+          await setDoc(docRef, data);
           results.push({ id: p.id, ...data });
         } else {
-          docRef = await collectionRef.add(p);
+          const docRef = await addDoc(collectionRef, p);
           results.push({ id: docRef.id, ...p });
         }
       }
@@ -202,18 +219,19 @@ class WriteBuilder {
   }
 
   async update(payload: any) {
-    let queryRef: any = adminDb.collection(this.table);
+    const constraints: any[] = [];
     for (const f of this.filters) {
-      queryRef = queryRef.where(f.field, f.op, f.value);
+      constraints.push(where(f.field, f.op as any, f.value));
     }
     try {
-      const snapshot = await queryRef.get();
+      const q = query(collection(db, this.table), ...constraints);
+      const snapshot = await getDocs(q);
       const results: any[] = [];
-      const batch = adminDb.batch();
-      snapshot.forEach((doc: any) => {
-        const docRef = adminDb.collection(this.table).doc(doc.id);
+      const batch = writeBatch(db);
+      snapshot.forEach((snapshotDoc) => {
+        const docRef = doc(db, this.table, snapshotDoc.id);
         batch.update(docRef, payload);
-        results.push({ id: doc.id, ...doc.data(), ...payload });
+        results.push({ id: snapshotDoc.id, ...snapshotDoc.data(), ...payload });
       });
       await batch.commit();
       return { data: results, error: null };
@@ -224,18 +242,19 @@ class WriteBuilder {
   }
 
   async delete() {
-    let queryRef: any = adminDb.collection(this.table);
+    const constraints: any[] = [];
     for (const f of this.filters) {
-      queryRef = queryRef.where(f.field, f.op, f.value);
+      constraints.push(where(f.field, f.op as any, f.value));
     }
     try {
-      const snapshot = await queryRef.get();
+      const q = query(collection(db, this.table), ...constraints);
+      const snapshot = await getDocs(q);
       const results: any[] = [];
-      const batch = adminDb.batch();
-      snapshot.forEach((doc: any) => {
-        const docRef = adminDb.collection(this.table).doc(doc.id);
+      const batch = writeBatch(db);
+      snapshot.forEach((snapshotDoc) => {
+        const docRef = doc(db, this.table, snapshotDoc.id);
         batch.delete(docRef);
-        results.push({ id: doc.id, ...doc.data() });
+        results.push({ id: snapshotDoc.id, ...snapshotDoc.data() });
       });
       await batch.commit();
       return { data: results, error: null };
@@ -246,13 +265,12 @@ class WriteBuilder {
   }
 
   async upsert(payload: any) {
-    const collectionRef = adminDb.collection(this.table);
     try {
       if (payload.id) {
-        const docRef = collectionRef.doc(payload.id);
+        const docRef = doc(db, this.table, payload.id);
         const data = { ...payload };
         delete data.id;
-        await docRef.set(data, { merge: true });
+        await setDoc(docRef, data, { merge: true });
         return { data: payload, error: null };
       } else {
         return this.insert(payload);
@@ -267,15 +285,20 @@ class WriteBuilder {
 class AdminAuthWrapper {
   async listUsers(options?: { page?: number; perPage?: number }) {
     try {
-      const result = await adminAuth.listUsers(options?.perPage || 200);
-      const mappedUsers = result.users.map((u: any) => ({
-        id: u.uid,
-        email: u.email ?? "",
-        created_at: u.metadata.creationTime ?? new Date().toISOString(),
-      }));
-      return { data: { users: mappedUsers }, error: null };
+      const q = query(collection(db, "profiles"));
+      const snapshot = await getDocs(q);
+      const users: any[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        users.push({
+          id: doc.id,
+          email: data.email ?? "",
+          created_at: data.created_at ?? new Date().toISOString(),
+        });
+      });
+      return { data: { users }, error: null };
     } catch (err: any) {
-      console.error("Error listing users in firebase-admin:", err);
+      console.error("Error listing users in db:", err);
       return { data: null, error: err };
     }
   }

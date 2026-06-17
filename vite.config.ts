@@ -14,22 +14,5 @@ export default defineConfig({
   },
   nitro: {
     preset: "vercel",
-    traceDeps: ["firebase-admin", "google-gax", "@google-cloud/firestore", "@google-cloud/storage"],
-    externals: {
-      traceInclude: [
-        "firebase-admin",
-        "google-gax",
-        "@google-cloud/firestore",
-        "@google-cloud/storage",
-      ],
-    },
-    rollupConfig: {
-      external: [
-        /^firebase-admin/,
-        /^google-gax/,
-        /^@google-cloud\/firestore/,
-        /^@google-cloud\/storage/,
-      ],
-    },
   },
 });

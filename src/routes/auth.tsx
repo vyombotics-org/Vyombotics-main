@@ -97,6 +97,16 @@ function AuthPage() {
           created_at: new Date().toISOString(),
         });
 
+        // Save student profile in Firestore
+        const profileRef = doc(db, "profiles", userCred.user.uid);
+        await setDoc(profileRef, {
+          id: userCred.user.uid,
+          full_name: fullName,
+          email: email,
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+        });
+
         toast.success("Account created! Welcome to Vyombotics 🚀");
         navigate({ to: "/dashboard" });
       } else if (mode === "login") {
@@ -128,6 +138,19 @@ function AuthPage() {
         await setDoc(roleRef, {
           user_id: userCred.user.uid,
           role: "student",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      // Ensure profile exists in Firestore
+      const profileRef = doc(db, "profiles", userCred.user.uid);
+      const profileSnap = await getDoc(profileRef);
+      if (!profileSnap.exists()) {
+        await setDoc(profileRef, {
+          id: userCred.user.uid,
+          full_name: userCred.user.displayName || "User",
+          email: userCred.user.email || "",
+          avatar_url: userCred.user.photoURL || null,
           created_at: new Date().toISOString(),
         });
       }

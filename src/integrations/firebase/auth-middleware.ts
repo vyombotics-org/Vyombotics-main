@@ -1,6 +1,37 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { adminAuth, adminDb } from "./client.server";
+
+async function verifyFirebaseIdToken(token: string) {
+  const apiKey = process.env.VITE_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing VITE_FIREBASE_API_KEY configuration");
+  }
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken: token }),
+    }
+  );
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData?.error?.message || "Token verification failed");
+  }
+  const data = await response.json();
+  const user = data?.users?.[0];
+  if (!user) {
+    throw new Error("No user found for this token");
+  }
+  return {
+    uid: user.localId,
+    email: user.email,
+    name: user.displayName,
+    picture: user.photoUrl,
+  };
+}
 
 export const requireFirebaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
@@ -26,7 +57,7 @@ export const requireFirebaseAuth = createMiddleware({ type: "function" }).server
     }
 
     try {
-      const decodedToken = await adminAuth.verifyIdToken(token);
+      const decodedToken = await verifyFirebaseIdToken(token);
       if (!decodedToken.uid) {
         throw new Error("Unauthorized: No user ID found in token");
       }
@@ -38,8 +69,6 @@ export const requireFirebaseAuth = createMiddleware({ type: "function" }).server
           supabase: supabaseAdmin,
           userId: decodedToken.uid,
           claims: decodedToken,
-          adminDb,
-          adminAuth,
         },
       });
     } catch (err: any) {
