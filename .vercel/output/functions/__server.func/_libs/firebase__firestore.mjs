@@ -6,7 +6,7 @@ import { L as Logger, a as LogLevel } from "./firebase__logger.mjs";
 import { inspect, TextEncoder } from "util";
 import { randomBytes as randomBytes$1 } from "crypto";
 import { s as srcExports$1 } from "./@grpc/grpc-js.mjs";
-import { s as srcExports } from "./grpc__proto-loader.mjs";
+import { s as srcExports } from "./@grpc/proto-loader.mjs";
 import { R as RE2JS } from "./re2js.mjs";
 class User {
   constructor(uid) {

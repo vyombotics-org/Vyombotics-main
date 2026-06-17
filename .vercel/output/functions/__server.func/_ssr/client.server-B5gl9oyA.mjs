@@ -1,4 +1,7 @@
-import { g as getAuth, a as getFirestore, b as getApps, i as initializeApp, c as cert, d as applicationDefault, e as getStorage } from "../_libs/firebase-admin.mjs";
+import { getApps, initializeApp, cert, applicationDefault } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 function getFirebaseAdmin() {
   const apps = getApps();
   if (apps.length > 0) {

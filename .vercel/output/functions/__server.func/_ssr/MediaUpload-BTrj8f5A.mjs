@@ -4,7 +4,7 @@ import { B as Button } from "./button-DjOZMqFS.mjs";
 import { I as Input } from "./input-D_U8fI25.mjs";
 import { s as storage } from "./client-DwVEAZaB.mjs";
 import { r as ref, u as uploadBytes, a as getDownloadURL } from "../_libs/firebase__storage.mjs";
-import { aB as Link, l as LoaderCircle, aC as Upload } from "../_libs/lucide-react.mjs";
+import { aB as Link, L as LoaderCircle, aC as Upload } from "../_libs/lucide-react.mjs";
 function MediaUpload({
   value,
   onChange,
