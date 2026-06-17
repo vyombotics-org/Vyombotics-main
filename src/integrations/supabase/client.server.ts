@@ -314,14 +314,14 @@ export const supabaseAdmin = {
     const query = new QueryBuilder(table);
     const write = new WriteBuilder(table);
 
-    return new Proxy({} as any, {
+    const proxy = new Proxy({} as any, {
       get(_, prop) {
         if (prop in query) {
           const val = (query as any)[prop];
           if (typeof val === "function") {
             return (...args: any[]) => {
               const res = val.apply(query, args);
-              return res === query ? _ : res;
+              return res === query ? proxy : res;
             };
           }
           return val;
@@ -331,7 +331,7 @@ export const supabaseAdmin = {
           if (typeof val === "function") {
             return (...args: any[]) => {
               const res = val.apply(write, args);
-              return res === write ? _ : res;
+              return res === write ? proxy : res;
             };
           }
           return val;
@@ -339,5 +339,7 @@ export const supabaseAdmin = {
         return undefined;
       },
     });
+
+    return proxy;
   },
 };
