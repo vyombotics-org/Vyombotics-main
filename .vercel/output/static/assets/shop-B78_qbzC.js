@@ -1,1 +1,0 @@
-import{j as o}from"./index-DJwIvNNf.js";import{E as t}from"./shop-COKiHr7q.js";import"./SiteNav-B7gZD7sS.js";import"./vyombotics-logo.png.asset-DhU37Ufv.js";import"./button-D94v1ji1.js";import"./useServerFn-DZevBWUc.js";import"./index-ufTuicd7.js";import"./loader-circle-1h_rWRY0.js";const u=()=>o.jsx(t,{message:"Page not found"});export{u as notFoundComponent};

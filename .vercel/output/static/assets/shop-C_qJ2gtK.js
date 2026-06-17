@@ -1,0 +1,1 @@
+import{j as o}from"./index-Bx9xAtok.js";import{E as t}from"./shop-BAWMEEsf.js";import"./SiteNav-DcHP7d_2.js";import"./button-BCqiW-c1.js";import"./useServerFn-Cj_lQMXG.js";import"./index-DZG-VbNW.js";import"./loader-circle-CspY1Cc7.js";const a=()=>o.jsx(t,{message:"Page not found"});export{a as notFoundComponent};

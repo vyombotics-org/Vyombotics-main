@@ -1,4 +1,4 @@
-import vyomboticsLogo from "@/assets/vyombotics-logo.png.asset.json";
+import logo from "@/assets/logo.png";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, Mail, Phone, MapPin, MessageCircle } from "lucide-react";
@@ -38,7 +38,7 @@ function ContactPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link to="/" className="flex items-center gap-2" aria-label="Vyombotics">
             <img
-              src={vyomboticsLogo.url}
+              src={logo}
               alt="Vyombotics Academy of Future Education"
               className="h-10 w-auto"
             />

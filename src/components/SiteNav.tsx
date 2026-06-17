@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, LayoutDashboard } from "lucide-react";
-import vyomboticsLogo from "@/assets/vyombotics-logo.png.asset.json";
+import logo from "@/assets/logo.png";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,7 +28,7 @@ export function SiteNav() {
           aria-label="Vyombotics — Academy of Future Education"
         >
           <img
-            src={vyomboticsLogo.url}
+            src={logo}
             alt="Vyombotics Academy of Future Education"
             className="h-9 w-auto md:h-10"
           />

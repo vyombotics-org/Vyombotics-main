@@ -1,4 +1,4 @@
-import vyomboticsLogo from "@/assets/vyombotics-logo.png.asset.json";
+import logo from "@/assets/logo.png";
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, Eye, EyeOff, Sparkles, Check, X, Loader2, Mail, Phone } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -187,7 +187,7 @@ function AuthPage() {
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2" aria-label="Vyombotics">
             <img
-              src={vyomboticsLogo.url}
+              src={logo}
               alt="Vyombotics Academy of Future Education"
               className="h-12 w-auto"
             />

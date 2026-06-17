@@ -1,10 +1,39 @@
 export function renderErrorPage(error?: any): string {
-  const errorMsg = error instanceof Error ? error.message : String(error || "Unknown server error");
-  const errorStack = error instanceof Error && error.stack 
+  let errorMsg = "Unknown server error";
+  let errorStack = "";
+  let debugDetails = "";
+
+  try {
+    if (error !== undefined && error !== null) {
+      if (error instanceof Error) {
+        errorMsg = error.message || "Error with empty message";
+        errorStack = error.stack || "";
+      } else if (typeof error === "object") {
+        errorMsg = error.message || `Object: ${JSON.stringify(error)}`;
+        errorStack = error.stack || "";
+        debugDetails = `Keys: ${Object.getOwnPropertyNames(error).join(", ")}`;
+      } else {
+        errorMsg = String(error);
+      }
+      debugDetails = `Type: ${typeof error} | ${debugDetails}`;
+    } else {
+      errorMsg = `Falsy error value: ${String(error)}`;
+    }
+  } catch (inspectErr: any) {
+    errorMsg = `Failed to inspect error: ${inspectErr.message}`;
+  }
+
+  const stackHtml = errorStack
     ? `<details style="margin-top: 1.5rem; text-align: left;">
          <summary style="cursor: pointer; color: #4b5563; font-size: 0.875rem;">Show Error Details</summary>
-         <pre style="background: #f3f4f6; color: #1f2937; padding: 1rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.75rem; overflow: auto; max-height: 15rem; margin-top: 0.5rem; border: 1px solid #e5e7eb; white-space: pre-wrap; word-break: break-all;">${error.stack}</pre>
+         <pre style="background: #f3f4f6; color: #1f2937; padding: 1rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.75rem; overflow: auto; max-height: 15rem; margin-top: 0.5rem; border: 1px solid #e5e7eb; white-space: pre-wrap; word-break: break-all;">${errorStack}</pre>
        </details>`
+    : "";
+
+  const debugHtml = debugDetails
+    ? `<div style="margin-top: 0.5rem; font-family: monospace; font-size: 0.75rem; color: #9ca3af;">
+         ${debugDetails}
+       </div>`
     : "";
 
   return `<!doctype html>
@@ -35,7 +64,8 @@ export function renderErrorPage(error?: any): string {
         <button class="primary" onclick="location.reload()">Try again</button>
         <a class="secondary" href="/">Go home</a>
       </div>
-      ${errorStack}
+      ${stackHtml}
+      ${debugHtml}
     </div>
   </body>
 </html>`;

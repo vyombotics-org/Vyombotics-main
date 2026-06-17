@@ -1,4 +1,4 @@
-import vyomboticsLogo from "@/assets/vyombotics-logo.png.asset.json";
+import logo from "@/assets/logo.png";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -555,7 +555,7 @@ function Landing() {
           <div className="md:col-span-2">
             <div className="flex items-center gap-2">
               <img
-                src={vyomboticsLogo.url}
+                src={logo}
                 alt="Vyombotics Academy of Future Education"
                 className="h-10 w-auto"
               />
