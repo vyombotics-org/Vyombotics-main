@@ -3,12 +3,39 @@ const TTL_MS = 5e3;
 function record(error) {
   lastCapturedError = { error, at: Date.now() };
 }
-if (typeof globalThis.addEventListener === "function") {
+if (typeof process !== "undefined" && typeof process.on === "function") {
+  process.on("uncaughtException", (error) => record(error));
+  process.on("unhandledRejection", (reason) => record(reason));
+} else if (typeof globalThis.addEventListener === "function") {
   globalThis.addEventListener("error", (event) => record(event.error ?? event));
   globalThis.addEventListener(
     "unhandledrejection",
     (event) => record(event.reason)
   );
+}
+if (typeof console !== "undefined" && typeof console.error === "function") {
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    let captured = false;
+    for (const arg of args) {
+      if (arg instanceof Error) {
+        record(arg);
+        captured = true;
+        break;
+      } else if (arg && typeof arg === "object" && (arg.message || arg.stack)) {
+        record(arg);
+        captured = true;
+        break;
+      }
+    }
+    if (!captured && args.length > 0) {
+      const msg = args.map((a) => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ");
+      if (msg.toLowerCase().includes("error") || msg.toLowerCase().includes("fail")) {
+        record(new Error(msg));
+      }
+    }
+    originalConsoleError.apply(console, args);
+  };
 }
 function consumeLastCapturedError() {
   if (!lastCapturedError) return void 0;
