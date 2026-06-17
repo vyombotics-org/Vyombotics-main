@@ -78,6 +78,22 @@ for (const packageName of Object.keys(functionPackage.dependencies)) {
   copyPackage(packageName);
 }
 
+const jwksUtilsPath = join(functionNodeModules, "jwks-rsa", "src", "utils.js");
+if (existsSync(jwksUtilsPath)) {
+  const jwksUtils = readFileSync(jwksUtilsPath, "utf8");
+  const patchedJwksUtils = jwksUtils
+    .replace("const jose = require('jose');\n", "")
+    .replace(
+      "async function retrieveSigningKeys(jwks) {\n",
+      "async function retrieveSigningKeys(jwks) {\n  const jose = await import('jose');\n",
+    );
+
+  if (patchedJwksUtils !== jwksUtils) {
+    writeFileSync(jwksUtilsPath, patchedJwksUtils);
+    console.log("[postbuild] Patched jwks-rsa to load ESM jose with dynamic import.");
+  }
+}
+
 console.log(
   `[postbuild] Copied ${copied.size} runtime packages into Vercel function output, including firebase-admin.`,
 );
