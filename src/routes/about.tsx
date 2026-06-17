@@ -202,11 +202,7 @@ function AboutPage() {
       <header className="border-b border-border/40">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link to="/" className="flex items-center gap-2" aria-label="Vyombotics">
-            <img
-              src={logo}
-              alt="Vyombotics Academy of Future Education"
-              className="h-10 w-auto"
-            />
+            <img src={logo} alt="Vyombotics Academy of Future Education" className="h-10 w-auto" />
           </Link>
           <nav className="hidden gap-6 text-sm text-muted-foreground md:flex">
             <Link to="/courses" className="hover:text-foreground">

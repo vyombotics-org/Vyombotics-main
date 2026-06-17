@@ -70,4 +70,3 @@ export function renderErrorPage(error?: any): string {
   </body>
 </html>`;
 }
-

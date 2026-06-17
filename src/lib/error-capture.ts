@@ -36,7 +36,9 @@ if (typeof console !== "undefined" && typeof console.error === "function") {
     }
     if (!captured && args.length > 0) {
       // Fallback for string-based logs that contain error-like details
-      const msg = args.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a))).join(" ");
+      const msg = args
+        .map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))
+        .join(" ");
       if (msg.toLowerCase().includes("error") || msg.toLowerCase().includes("fail")) {
         record(new Error(msg));
       }
