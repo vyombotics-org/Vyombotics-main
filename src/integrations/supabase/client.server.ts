@@ -24,6 +24,8 @@ class QueryBuilder {
   private limitCount: number | null = null;
   private countOption: string | null = null;
   private headOption: boolean = false;
+  private isSingle: boolean = false;
+  private isMaybeSingle: boolean = false;
 
   constructor(table: string) {
     this.table = table;
@@ -59,7 +61,17 @@ class QueryBuilder {
     return this;
   }
 
-  async get() {
+  single() {
+    this.isSingle = true;
+    return this;
+  }
+
+  maybeSingle() {
+    this.isMaybeSingle = true;
+    return this;
+  }
+
+  async execute() {
     const constraints: any[] = [];
 
     const hasEmptyInFilter = this.filters.some(
@@ -68,6 +80,12 @@ class QueryBuilder {
     if (hasEmptyInFilter) {
       if (this.countOption) {
         return { count: 0, data: [], error: null };
+      }
+      if (this.isSingle || this.isMaybeSingle) {
+        if (this.isSingle) {
+          return { data: null, error: new Error("Row not found") };
+        }
+        return { data: null, error: null };
       }
       return { data: [], error: null };
     }
@@ -100,6 +118,16 @@ class QueryBuilder {
 
       await this.resolveJoins(results);
 
+      if (this.isSingle || this.isMaybeSingle) {
+        if (results.length === 0) {
+          if (this.isSingle) {
+            return { data: null, error: new Error("Row not found") };
+          }
+          return { data: null, error: null };
+        }
+        return { data: results[0], error: null };
+      }
+
       return { data: results, error: null };
     } catch (err: any) {
       console.error(`[Firebase DB Adapter] Query error on ${this.table}:`, err);
@@ -107,21 +135,8 @@ class QueryBuilder {
     }
   }
 
-  async single() {
-    const { data, error } = await this.get();
-    if (error) return { data: null, error };
-    if (!data || data.length === 0) return { data: null, error: new Error("Row not found") };
-    return { data: data[0], error: null };
-  }
-
-  async maybeSingle() {
-    const { data, error } = await this.get();
-    if (error) return { data: null, error };
-    return { data: data && data.length > 0 ? data[0] : null, error: null };
-  }
-
   then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
-    return this.get().then(onfulfilled, onrejected);
+    return this.execute().then(onfulfilled, onrejected);
   }
 
   private async resolveJoins(items: any[]) {
@@ -187,6 +202,11 @@ class QueryBuilder {
 class WriteBuilder {
   private table: string;
   private filters: Array<{ field: string; op: string; value: any }> = [];
+  private op: "insert" | "update" | "delete" | "upsert" | null = null;
+  private payload: any = null;
+  private selectFields: string | null = null;
+  private isSingle: boolean = false;
+  private isMaybeSingle: boolean = false;
 
   constructor(table: string) {
     this.table = table;
@@ -198,96 +218,189 @@ class WriteBuilder {
     return this;
   }
 
-  async insert(payload: any | any[]) {
-    const collectionRef = collection(db, this.table);
-    const payloads = Array.isArray(payload) ? payload : [payload];
-    const results: any[] = [];
-    try {
-      for (const p of payloads) {
-        let docId = p.id;
-        if (!docId && (this.table === "user_roles" || this.table === "profiles") && p.user_id) {
-          docId = p.user_id;
-        }
+  in(field: string, values: any[]) {
+    const fName = field === "id" ? "__name__" : field;
+    this.filters.push({ field: fName, op: "in", value: values });
+    return this;
+  }
 
-        if (docId) {
-          const docRef = doc(db, this.table, docId);
-          const data = { ...p };
-          delete data.id;
-          await setDoc(docRef, data);
-          results.push({ id: docId, ...data });
-        } else {
-          const docRef = await addDoc(collectionRef, p);
-          results.push({ id: docRef.id, ...p });
+  insert(payload: any | any[]) {
+    this.op = "insert";
+    this.payload = payload;
+    return this;
+  }
+
+  update(payload: any) {
+    this.op = "update";
+    this.payload = payload;
+    return this;
+  }
+
+  delete() {
+    this.op = "delete";
+    return this;
+  }
+
+  upsert(payload: any, options?: any) {
+    this.op = "upsert";
+    this.payload = payload;
+    return this;
+  }
+
+  select(fields: string = "*") {
+    this.selectFields = fields;
+    return this;
+  }
+
+  single() {
+    this.isSingle = true;
+    return this;
+  }
+
+  maybeSingle() {
+    this.isMaybeSingle = true;
+    return this;
+  }
+
+  async execute() {
+    try {
+      let results: any = null;
+
+      if (this.op === "insert") {
+        const collectionRef = collection(db, this.table);
+        const payloads = Array.isArray(this.payload) ? this.payload : [this.payload];
+        const inserted: any[] = [];
+        for (const p of payloads) {
+          let docId = p.id;
+          if (!docId && (this.table === "user_roles" || this.table === "profiles") && p.user_id) {
+            docId = p.user_id;
+          }
+
+          if (docId) {
+            const docRef = doc(db, this.table, docId);
+            const data = { ...p };
+            delete data.id;
+            await setDoc(docRef, data);
+            inserted.push({ id: docId, ...data });
+          } else {
+            const docRef = await addDoc(collectionRef, p);
+            inserted.push({ id: docRef.id, ...p });
+          }
+        }
+        results = Array.isArray(this.payload) ? inserted : inserted[0];
+      } else if (this.op === "update") {
+        const constraints: any[] = [];
+        for (const f of this.filters) {
+          constraints.push(where(f.field, f.op as any, f.value));
+        }
+        const q = query(collection(db, this.table), ...constraints);
+        const snapshot = await getDocs(q);
+        const updated: any[] = [];
+        const batch = writeBatch(db);
+        snapshot.forEach((snapshotDoc) => {
+          const docRef = doc(db, this.table, snapshotDoc.id);
+          batch.update(docRef, this.payload);
+          updated.push({ id: snapshotDoc.id, ...snapshotDoc.data(), ...this.payload });
+        });
+        await batch.commit();
+        results = updated;
+      } else if (this.op === "delete") {
+        const constraints: any[] = [];
+        for (const f of this.filters) {
+          constraints.push(where(f.field, f.op as any, f.value));
+        }
+        const q = query(collection(db, this.table), ...constraints);
+        const snapshot = await getDocs(q);
+        const deleted: any[] = [];
+        const batch = writeBatch(db);
+        snapshot.forEach((snapshotDoc) => {
+          const docRef = doc(db, this.table, snapshotDoc.id);
+          batch.delete(docRef);
+          deleted.push({ id: snapshotDoc.id, ...snapshotDoc.data() });
+        });
+        await batch.commit();
+        results = deleted;
+      } else if (this.op === "upsert") {
+        const payloads = Array.isArray(this.payload) ? this.payload : [this.payload];
+        const upserted: any[] = [];
+        for (const p of payloads) {
+          let docId = p.id;
+          if (!docId) {
+            if (this.table === "site_settings" && p.key) {
+              docId = p.key;
+            } else if (this.table === "user_roles" && p.user_id) {
+              docId = p.user_id;
+            } else if (this.table === "profiles" && p.user_id) {
+              docId = p.user_id;
+            }
+          }
+
+          if (docId) {
+            const docRef = doc(db, this.table, docId);
+            const data = { ...p };
+            delete data.id;
+            await setDoc(docRef, data, { merge: true });
+            upserted.push({ id: docId, ...data });
+          } else {
+            const collectionRef = collection(db, this.table);
+            const docRef = await addDoc(collectionRef, p);
+            upserted.push({ id: docRef.id, ...p });
+          }
+        }
+        results = Array.isArray(this.payload) ? upserted : upserted[0];
+      }
+
+      // Handle single / maybeSingle formatting
+      if (this.isSingle || this.isMaybeSingle) {
+        if (Array.isArray(results)) {
+          if (results.length === 0) {
+            if (this.isSingle) {
+              return { data: null, error: new Error("Row not found") };
+            }
+            return { data: null, error: null };
+          }
+          results = results[0];
+        } else if (!results && this.isSingle) {
+          return { data: null, error: new Error("Row not found") };
         }
       }
-      return { data: Array.isArray(payload) ? results : results[0], error: null };
-    } catch (err: any) {
-      console.error(`[Firebase DB Adapter] Insert error on ${this.table}:`, err);
-      return { data: null, error: err };
-    }
-  }
 
-  async update(payload: any) {
-    const constraints: any[] = [];
-    for (const f of this.filters) {
-      constraints.push(where(f.field, f.op as any, f.value));
-    }
-    try {
-      const q = query(collection(db, this.table), ...constraints);
-      const snapshot = await getDocs(q);
-      const results: any[] = [];
-      const batch = writeBatch(db);
-      snapshot.forEach((snapshotDoc) => {
-        const docRef = doc(db, this.table, snapshotDoc.id);
-        batch.update(docRef, payload);
-        results.push({ id: snapshotDoc.id, ...snapshotDoc.data(), ...payload });
-      });
-      await batch.commit();
       return { data: results, error: null };
     } catch (err: any) {
-      console.error(`[Firebase DB Adapter] Update error on ${this.table}:`, err);
+      console.error(`[Firebase DB Adapter] Write error on ${this.table} (${this.op}):`, err);
       return { data: null, error: err };
     }
   }
 
-  async delete() {
-    const constraints: any[] = [];
-    for (const f of this.filters) {
-      constraints.push(where(f.field, f.op as any, f.value));
-    }
-    try {
-      const q = query(collection(db, this.table), ...constraints);
-      const snapshot = await getDocs(q);
-      const results: any[] = [];
-      const batch = writeBatch(db);
-      snapshot.forEach((snapshotDoc) => {
-        const docRef = doc(db, this.table, snapshotDoc.id);
-        batch.delete(docRef);
-        results.push({ id: snapshotDoc.id, ...snapshotDoc.data() });
-      });
-      await batch.commit();
-      return { data: results, error: null };
-    } catch (err: any) {
-      console.error(`[Firebase DB Adapter] Delete error on ${this.table}:`, err);
-      return { data: null, error: err };
-    }
+  then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+    return this.execute().then(onfulfilled, onrejected);
   }
+}
 
-  async upsert(payload: any) {
-    try {
-      if (payload.id) {
-        const docRef = doc(db, this.table, payload.id);
-        const data = { ...payload };
-        delete data.id;
-        await setDoc(docRef, data, { merge: true });
-        return { data: payload, error: null };
-      } else {
-        return this.insert(payload);
-      }
-    } catch (err: any) {
-      console.error(`[Firebase DB Adapter] Upsert error on ${this.table}:`, err);
-      return { data: null, error: err };
-    }
+class TableBuilder {
+  private table: string;
+  constructor(table: string) {
+    this.table = table;
+  }
+  select(fields: string = "*", options?: { count?: string; head?: boolean }) {
+    const qb = new QueryBuilder(this.table);
+    return qb.select(fields, options);
+  }
+  insert(payload: any | any[]) {
+    const wb = new WriteBuilder(this.table);
+    return wb.insert(payload);
+  }
+  update(payload: any) {
+    const wb = new WriteBuilder(this.table);
+    return wb.update(payload);
+  }
+  delete() {
+    const wb = new WriteBuilder(this.table);
+    return wb.delete();
+  }
+  upsert(payload: any, options?: any) {
+    const wb = new WriteBuilder(this.table);
+    return wb.upsert(payload, options);
   }
 }
 
@@ -320,37 +433,6 @@ class AuthWrapper {
 export const supabaseAdmin = {
   auth: new AuthWrapper(),
   from: (table: string) => {
-    const query = new QueryBuilder(table);
-    const write = new WriteBuilder(table);
-
-    const proxy = new Proxy({} as any, {
-      get(_, prop) {
-        const knownQueryMethods = ["select", "eq", "in", "order", "limit", "single", "maybeSingle", "then", "get"];
-        if (typeof prop === "string" && (knownQueryMethods.includes(prop) || prop in query)) {
-          const val = (query as any)[prop] || (QueryBuilder.prototype as any)[prop];
-          if (typeof val === "function") {
-            return (...args: any[]) => {
-              const res = val.apply(query, args);
-              return res === query ? proxy : res;
-            };
-          }
-          return val;
-        }
-        const knownWriteMethods = ["insert", "update", "delete", "upsert"];
-        if (typeof prop === "string" && (knownWriteMethods.includes(prop) || prop in write)) {
-          const val = (write as any)[prop] || (WriteBuilder.prototype as any)[prop];
-          if (typeof val === "function") {
-            return (...args: any[]) => {
-              const res = val.apply(write, args);
-              return res === write ? proxy : res;
-            };
-          }
-          return val;
-        }
-        return undefined;
-      },
-    });
-
-    return proxy;
+    return new TableBuilder(table);
   },
 };
