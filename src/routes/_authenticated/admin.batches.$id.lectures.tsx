@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { storage } from "@/integrations/firebase/client";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import {
   getBatchAdmin,
   listLecturesForBatch,
@@ -83,6 +83,7 @@ function AdminLectures() {
   });
   const [editing, setEditing] = useState<Lecture | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   async function uploadVideo(file: File) {
     if (!editing) return;
@@ -91,19 +92,39 @@ function AdminLectures() {
       return;
     }
     setUploading(true);
+    setUploadProgress(0);
     try {
       const ext = file.name.split(".").pop() || "mp4";
       const path = `lecture-videos/${batchId}/${crypto.randomUUID()}.${ext}`;
       const storageRef = ref(storage, path);
-      const uploadResult = await uploadBytes(storageRef, file, {
+      
+      const uploadTask = uploadBytesResumable(storageRef, file, {
         contentType: file.type,
       });
-      const downloadUrl = await getDownloadURL(uploadResult.ref);
-      setEditing({ ...editing, video_url: downloadUrl });
-      toast.success("Video uploaded");
+
+      return new Promise<void>((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(Math.round(progress));
+          },
+          (error) => {
+            toast.error(error.message || "Upload failed");
+            setUploading(false);
+            reject(error);
+          },
+          async () => {
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            setEditing({ ...editing, video_url: downloadUrl });
+            toast.success("Video uploaded successfully");
+            setUploading(false);
+            resolve();
+          }
+        );
+      });
     } catch (e: any) {
       toast.error(e?.message || "Upload failed");
-    } finally {
       setUploading(false);
     }
   }
@@ -309,7 +330,7 @@ function AdminLectures() {
                       ) : (
                         <Upload className="h-4 w-4" />
                       )}
-                      <span>{uploading ? "Uploading…" : "Upload video file"}</span>
+                      <span>{uploading ? `Uploading… ${uploadProgress}%` : "Upload video file"}</span>
                       <input
                         type="file"
                         accept="video/*"

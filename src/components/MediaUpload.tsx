@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { storage } from "@/integrations/firebase/client";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
@@ -32,9 +32,11 @@ export function MediaUpload({
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   async function handleFile(file: File) {
     setUploading(true);
+    setUploadProgress(0);
     try {
       if (useCloudinary) {
         const downloadUrl = await uploadToCloudinary(file, folder);
@@ -45,19 +47,35 @@ export function MediaUpload({
         const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const storageRef = ref(storage, path);
 
-        const uploadResult = await uploadBytes(storageRef, file, {
+        const uploadTask = uploadBytesResumable(storageRef, file, {
           contentType: file.type,
           cacheControl: "public,max-age=31536000",
         });
 
-        const downloadUrl = await getDownloadURL(uploadResult.ref);
-        onChange(downloadUrl);
-        toast.success("Uploaded");
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setUploadProgress(Math.round(progress));
+            },
+            (error) => {
+              reject(error);
+            },
+            async () => {
+              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              onChange(downloadUrl);
+              toast.success("Uploaded successfully");
+              resolve();
+            }
+          );
+        });
       }
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     } finally {
       setUploading(false);
+      setUploadProgress(null);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
@@ -88,7 +106,9 @@ export function MediaUpload({
           ) : (
             <Upload className="h-4 w-4" />
           )}
-          <span className="ml-2 hidden sm:inline">Upload</span>
+          <span className="ml-2 hidden sm:inline">
+            {uploading && uploadProgress !== null ? `Uploading ${uploadProgress}%` : "Upload"}
+          </span>
         </Button>
         <input
           ref={inputRef}
