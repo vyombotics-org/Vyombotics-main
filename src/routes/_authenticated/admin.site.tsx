@@ -882,6 +882,57 @@ function FloatingVideoEditor({
   );
 }
 
+const DEFAULT_VOICES: StemVoiceItem[] = [
+  {
+    name: "Sundar Pichai",
+    role: "CEO, Google · Technology Visionary",
+    quote: "AI is one of the most profound things we're working on as humanity.",
+    thumb: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=800&q=80",
+    youtubeId: "Unzc731iCUY",
+    accent: "from-blue-500 to-cyan-400",
+  },
+  {
+    name: "Sal Khan",
+    role: "Founder, Khan Academy · Education Leader",
+    quote: "Let's teach for mastery — not for test scores.",
+    thumb: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80",
+    youtubeId: "-MTRxRO5SRA",
+    accent: "from-emerald-500 to-teal-400",
+  },
+  {
+    name: "Elon Musk",
+    role: "Founder, SpaceX · Innovator",
+    quote: "When something is important enough, you do it even if the odds are not in your favor.",
+    thumb: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80",
+    youtubeId: "cdZZpaB2kDM",
+    accent: "from-orange-500 to-amber-400",
+  },
+  {
+    name: "Fei-Fei Li",
+    role: "AI Scientist, Stanford · Researcher",
+    quote: "AI is not just a tool — it's a new way of thinking about the world.",
+    thumb: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&q=80",
+    youtubeId: "40riCqvRoMs",
+    accent: "from-pink-500 to-rose-400",
+  },
+  {
+    name: "Tim Berners-Lee",
+    role: "Inventor of the Web · Pioneer",
+    quote: "The web is for everyone — and collectively we hold the power to change it.",
+    thumb: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80",
+    youtubeId: "ovZxgGLAevc",
+    accent: "from-indigo-500 to-violet-400",
+  },
+  {
+    name: "Reshma Saujani",
+    role: "Founder, Girls Who Code · Advocate",
+    quote: "We need to socialize our girls to be brave, not perfect.",
+    thumb: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80",
+    youtubeId: "fC9da6eqaqg",
+    accent: "from-fuchsia-500 to-pink-400",
+  },
+];
+
 function StemVoicesEditor({
   initial,
   onSave,
@@ -896,11 +947,11 @@ function StemVoicesEditor({
     heading: "",
     subheading: "",
     badge: "",
-    items: [],
+    items: initial?.items && initial.items.length > 0 ? initial.items : DEFAULT_VOICES,
     ...initial,
   });
   useEffect(
-    () => setForm({ enabled: true, heading: "", subheading: "", badge: "", items: [], ...initial }),
+    () => setForm({ enabled: true, heading: "", subheading: "", badge: "", items: initial?.items && initial.items.length > 0 ? initial.items : DEFAULT_VOICES, ...initial }),
     [initial],
   );
 
@@ -1001,24 +1052,14 @@ function StemVoicesEditor({
                 />
                 <div>
                   <Label className="text-xs text-muted-foreground">
-                    YouTube URL or video ID (used if no video file uploaded)
+                    YouTube URL or Video ID
                   </Label>
                   <Input
                     value={it.youtubeId ?? ""}
-                    onChange={(e) => updateItem(i, { youtubeId: e.target.value })}
-                    placeholder="https://youtu.be/Unzc731iCUY  or  Unzc731iCUY"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">
-                    Or upload a video file (.mp4/.webm) — takes priority over YouTube
-                  </Label>
-                  <MediaUpload
-                    value={it.videoUrl ?? ""}
-                    onChange={(url) => updateItem(i, { videoUrl: url })}
-                    accept="video/*"
-                    folder="stem-voices-videos"
-                    placeholder="Paste video URL or upload"
+                    onChange={(e) => {
+                      updateItem(i, { youtubeId: e.target.value, videoUrl: "" });
+                    }}
+                    placeholder="https://www.youtube.com/watch?v=Unzc731iCUY or Unzc731iCUY"
                   />
                 </div>
                 <div>
@@ -1120,6 +1161,93 @@ function SectionHeaderFields({
   );
 }
 
+const DEFAULT_FACULTY: FacultyMember[] = [
+  {
+    name: "Neeraj Singh",
+    role: "Founder & Academic Head",
+    focus: "Academic vision, curriculum quality, student learning outcomes, and innovation-led education.",
+    initials: "NS",
+    gradient: "from-blue-600 to-cyan-400",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813647/neerajsingh_xkcimx.jpg",
+    linkedin: "https://www.linkedin.com/in/neeraj-singh-04b6b4244?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Neeraj Kumar",
+    role: "Director & Cofounder",
+    focus: "Operations, school partnerships, growth strategy, and program execution.",
+    initials: "NK",
+    gradient: "from-violet-600 to-blue-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813178/neerajkumar_ztbthu.jpg",
+    linkedin: "https://www.linkedin.com/in/neeraj-kumar-48593a257?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Aanchal Chaurasiya",
+    role: "Full Stack Web Developer",
+    focus: "Frontend, backend, React projects, APIs, deployments, and production-ready web development.",
+    initials: "AC",
+    gradient: "from-fuchsia-500 to-pink-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813752/anchal_t5n3ze.jpg",
+    linkedin: "https://www.linkedin.com/in/anchal-chaurasiya-693b53257?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Rishabh Yadav",
+    role: "Python and AI/ML Programmer",
+    focus: "Python programming, machine learning workflows, AI projects, and data-driven student builds.",
+    initials: "RY",
+    gradient: "from-emerald-400 to-cyan-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813792/rishabh_oozhz2.jpg",
+    linkedin: "https://www.linkedin.com/in/rishabh-yadav17?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Anmol Verma",
+    role: "3D CAD Designing Lead",
+    focus: "3D modeling, CAD design, prototype planning, and product visualization for robotics projects.",
+    initials: "AV",
+    gradient: "from-cyan-500 to-blue-600",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813861/anmol_jihmwg.jpg",
+    linkedin: "https://www.linkedin.com/in/anmol-verma-here?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Abhimanyu Singh",
+    role: "App Developer Lead",
+    focus: "Mobile app development, Firebase workflows, UI systems, and app-based student product builds.",
+    initials: "AS",
+    gradient: "from-indigo-500 to-violet-600",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779814535/abhimanyu_fo5rkl.jpg",
+    linkedin: "https://www.linkedin.com/in/abhimanyu-singh-95a55s/",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Aman Kumar",
+    role: "Drone Technology Lead",
+    focus: "Drone systems, flight fundamentals, aerial robotics, and applied drone technology education.",
+    initials: "AK",
+    gradient: "from-orange-400 to-rose-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779814143/aman_hbjt6y.jpg",
+    linkedin: "https://www.linkedin.com/in/aman-kumar-8b14ab2a5?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+];
+
 function FacultyPageEditor({
   initial,
   onSave,
@@ -1133,7 +1261,7 @@ function FacultyPageEditor({
     heading: "Featured Faculty",
     subheading: "",
     badge: "Our Mentors",
-    members: [],
+    members: initial?.members && initial.members.length > 0 ? initial.members : DEFAULT_FACULTY,
     ...initial,
   });
   useEffect(
@@ -1142,7 +1270,7 @@ function FacultyPageEditor({
         heading: "Featured Faculty",
         subheading: "",
         badge: "Our Mentors",
-        members: [],
+        members: initial?.members && initial.members.length > 0 ? initial.members : DEFAULT_FACULTY,
         ...initial,
       }),
     [initial],
@@ -1201,18 +1329,48 @@ function FacultyPageEditor({
                   onChange={(e) => updateMember(i, { bio: e.target.value })}
                   placeholder="Short bio (optional)"
                 />
-                <Input
-                  value={(m.expertise ?? []).join(", ")}
-                  onChange={(e) =>
-                    updateMember(i, {
-                      expertise: e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    })
-                  }
-                  placeholder="Expertise tags, comma-separated"
+                <Textarea
+                  rows={2}
+                  value={m.focus ?? ""}
+                  onChange={(e) => updateMember(i, { focus: e.target.value })}
+                  placeholder="Focus (e.g. Operations, growth strategy...)"
                 />
+                <Input
+                  value={m.linkedin ?? ""}
+                  onChange={(e) => updateMember(i, { linkedin: e.target.value })}
+                  placeholder="LinkedIn Profile URL (optional)"
+                />
+                <div className="grid gap-2 md:grid-cols-2">
+                  <Input
+                    value={(m.expertise ?? []).join(", ")}
+                    onChange={(e) =>
+                      updateMember(i, {
+                        expertise: e.target.value
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    placeholder="Expertise tags, comma-separated"
+                  />
+                  <Select
+                    value={m.gradient ?? "from-blue-600 to-cyan-400"}
+                    onValueChange={(v) => updateMember(i, { gradient: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Gradient" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="from-blue-600 to-cyan-400">Blue → Cyan</SelectItem>
+                      <SelectItem value="from-violet-600 to-blue-500">Violet → Blue</SelectItem>
+                      <SelectItem value="from-fuchsia-500 to-pink-500">Fuchsia → Pink</SelectItem>
+                      <SelectItem value="from-emerald-400 to-cyan-500">Emerald → Cyan</SelectItem>
+                      <SelectItem value="from-cyan-500 to-blue-600">Cyan → Blue</SelectItem>
+                      <SelectItem value="from-indigo-500 to-violet-600">Indigo → Violet</SelectItem>
+                      <SelectItem value="from-orange-400 to-rose-500">Orange → Rose</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Photo (optional)</Label>
                   <MediaUpload
@@ -1220,6 +1378,7 @@ function FacultyPageEditor({
                     onChange={(url) => updateMember(i, { image: url })}
                     accept="image/*"
                     folder="faculty"
+                    useCloudinary={true}
                   />
                 </div>
                 <div className="flex justify-end">

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { storage } from "@/integrations/firebase/client";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
 
@@ -14,10 +15,11 @@ type Props = {
   accept?: string;
   folder?: string;
   placeholder?: string;
+  useCloudinary?: boolean;
 };
 
 /**
- * Upload a file to Firebase Storage and return the download URL,
+ * Upload a file to Firebase Storage or Cloudinary and return the download URL,
  * OR paste a URL manually. Either works.
  */
 export function MediaUpload({
@@ -26,6 +28,7 @@ export function MediaUpload({
   accept = "image/*,video/*",
   folder = "uploads",
   placeholder = "Paste URL or upload a file",
+  useCloudinary = false,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -33,18 +36,24 @@ export function MediaUpload({
   async function handleFile(file: File) {
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const storageRef = ref(storage, path);
+      if (useCloudinary) {
+        const downloadUrl = await uploadToCloudinary(file, folder);
+        onChange(downloadUrl);
+        toast.success("Uploaded to Cloudinary");
+      } else {
+        const ext = file.name.split(".").pop() || "bin";
+        const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const storageRef = ref(storage, path);
 
-      const uploadResult = await uploadBytes(storageRef, file, {
-        contentType: file.type,
-        cacheControl: "public,max-age=31536000",
-      });
+        const uploadResult = await uploadBytes(storageRef, file, {
+          contentType: file.type,
+          cacheControl: "public,max-age=31536000",
+        });
 
-      const downloadUrl = await getDownloadURL(uploadResult.ref);
-      onChange(downloadUrl);
-      toast.success("Uploaded");
+        const downloadUrl = await getDownloadURL(uploadResult.ref);
+        onChange(downloadUrl);
+        toast.success("Uploaded");
+      }
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     } finally {

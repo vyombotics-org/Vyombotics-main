@@ -14,6 +14,7 @@ import {
   Brain,
   Database,
   Star,
+  Linkedin,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,6 +34,9 @@ import { AnnouncementsSection } from "@/components/AnnouncementsSection";
 import { ShopSection } from "@/components/ShopSection";
 import { StemVoices } from "@/components/StemVoices";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { listPublishedCourses } from "@/lib/courses.functions";
 import spaceHero from "@/assets/space-hero.mp4.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -132,58 +136,161 @@ const testimonials = [
 
 const faculty = [
   {
-    name: "Aman Verma",
-    role: "Lead Instructor · Full-Stack",
-    company: "Ex-Razorpay, Flipkart",
-    exp: "9+ yrs",
-    expertise: ["React", "Node.js", "System Design"],
-    initials: "AV",
+    name: "Neeraj Singh",
+    role: "Founder & Academic Head",
+    focus: "Academic vision, curriculum quality, student learning outcomes, and innovation-led education.",
+    initials: "NS",
+    gradient: "from-blue-600 to-cyan-400",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813647/neerajsingh_xkcimx.jpg",
+    linkedin: "https://www.linkedin.com/in/neeraj-singh-04b6b4244?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
   },
   {
-    name: "Priya Singh",
-    role: "AI / ML Mentor",
-    company: "Ex-Google, Microsoft",
-    exp: "11+ yrs",
-    expertise: ["Deep Learning", "NLP", "PyTorch"],
-    initials: "PS",
-  },
-  {
-    name: "Rohit Sharma",
-    role: "DSA Coach",
-    company: "Ex-Amazon SDE-3",
-    exp: "8+ yrs",
-    expertise: ["DSA", "Java", "Competitive"],
-    initials: "RS",
-  },
-  {
-    name: "Neha Kapoor",
-    role: "Cloud & DevOps Lead",
-    company: "Ex-AWS, Atlassian",
-    exp: "10+ yrs",
-    expertise: ["AWS", "Kubernetes", "CI/CD"],
+    name: "Neeraj Kumar",
+    role: "Director & Cofounder",
+    focus: "Operations, school partnerships, growth strategy, and program execution.",
     initials: "NK",
+    gradient: "from-violet-600 to-blue-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813178/neerajkumar_ztbthu.jpg",
+    linkedin: "https://www.linkedin.com/in/neeraj-kumar-48593a257?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
   },
   {
-    name: "Vikram Iyer",
-    role: "Product & UX Mentor",
-    company: "Ex-Swiggy, Paytm",
-    exp: "12+ yrs",
-    expertise: ["Product", "UX", "Strategy"],
-    initials: "VI",
+    name: "Aanchal Chaurasiya",
+    role: "Full Stack Web Developer",
+    focus: "Frontend, backend, React projects, APIs, deployments, and production-ready web development.",
+    initials: "AC",
+    gradient: "from-fuchsia-500 to-pink-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813752/anchal_t5n3ze.jpg",
+    linkedin: "https://www.linkedin.com/in/anchal-chaurasiya-693b53257?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
   },
   {
-    name: "Ishita Roy",
-    role: "Data Science Faculty",
-    company: "Ex-Meta, Uber",
-    exp: "7+ yrs",
-    expertise: ["Python", "ML Ops", "Analytics"],
-    initials: "IR",
+    name: "Rishabh Yadav",
+    role: "Python and AI/ML Programmer",
+    focus: "Python programming, machine learning workflows, AI projects, and data-driven student builds.",
+    initials: "RY",
+    gradient: "from-emerald-400 to-cyan-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813792/rishabh_oozhz2.jpg",
+    linkedin: "https://www.linkedin.com/in/rishabh-yadav17?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Anmol Verma",
+    role: "3D CAD Designing Lead",
+    focus: "3D modeling, CAD design, prototype planning, and product visualization for robotics projects.",
+    initials: "AV",
+    gradient: "from-cyan-500 to-blue-600",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779813861/anmol_jihmwg.jpg",
+    linkedin: "https://www.linkedin.com/in/anmol-verma-here?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Abhimanyu Singh",
+    role: "App Developer Lead",
+    focus: "Mobile app development, Firebase workflows, UI systems, and app-based student product builds.",
+    initials: "AS",
+    gradient: "from-indigo-500 to-violet-600",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779814535/abhimanyu_fo5rkl.jpg",
+    linkedin: "https://www.linkedin.com/in/abhimanyu-singh-95a55s/",
+    company: "",
+    exp: "",
+    expertise: [],
+  },
+  {
+    name: "Aman Kumar",
+    role: "Drone Technology Lead",
+    focus: "Drone systems, flight fundamentals, aerial robotics, and applied drone technology education.",
+    initials: "AK",
+    gradient: "from-orange-400 to-rose-500",
+    image: "https://res.cloudinary.com/drc0gwhz9/image/upload/v1779814143/aman_hbjt6y.jpg",
+    linkedin: "https://www.linkedin.com/in/aman-kumar-8b14ab2a5?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    company: "",
+    exp: "",
+    expertise: [],
   },
 ];
 
 function Landing() {
   const { t } = useTranslation();
-  const { hero } = useSiteSettings();
+  const { hero, facultyPage } = useSiteSettings();
+
+  const fetcher = useServerFn(listPublishedCourses);
+  const { data: coursesData } = useQuery({
+    queryKey: ["courses", "published"],
+    queryFn: () => fetcher(),
+  });
+
+  const coursesList = coursesData?.courses && coursesData.courses.length > 0
+    ? coursesData.courses.map((c: any) => {
+        let Icon = BookOpen;
+        if (c.category?.toLowerCase().includes("web") || c.category?.toLowerCase().includes("code")) {
+          Icon = Code2;
+        } else if (c.category?.toLowerCase().includes("ai") || c.category?.toLowerCase().includes("ml") || c.category?.toLowerCase().includes("intelligence")) {
+          Icon = Brain;
+        } else if (c.category?.toLowerCase().includes("data") || c.category?.toLowerCase().includes("dsa") || c.category?.toLowerCase().includes("db")) {
+          Icon = Database;
+        }
+        return {
+          title: c.title,
+          instructor: "Vyombotics Faculty",
+          weeks: c.duration_hours ? Math.ceil(c.duration_hours / 4) : 12,
+          students: c.students_count || 120,
+          price: c.price_inr || 0,
+          rating: c.rating || 4.8,
+          category: c.category || "Tech",
+          tag: c.level ? c.level.charAt(0).toUpperCase() + c.level.slice(1) : "Premium",
+          thumbnail_url: c.thumbnail_url,
+          slug: c.slug,
+          icon: Icon,
+        };
+      })
+    : courses.map((c) => ({
+        title: c.titleKey,
+        instructor: c.instructor,
+        weeks: c.weeks,
+        students: c.students,
+        price: c.price,
+        rating: c.rating,
+        category: "Tech",
+        tag: c.tag,
+        thumbnail_url: null,
+        slug: undefined,
+        icon: c.icon,
+      }));
+
+  const facultyList = facultyPage.members && facultyPage.members.length > 0
+    ? facultyPage.members.map((m: any) => {
+        const initials = m.name
+          ? m.name
+              .split(" ")
+              .map((n: string) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()
+          : "FI";
+        return {
+          name: m.name,
+          role: m.role || "Instructor",
+          company: m.company || "Industry Expert",
+          exp: m.exp || "5+ yrs",
+          expertise: m.expertise || [],
+          initials,
+          image: m.image,
+        };
+      })
+    : faculty;
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       <SiteNav />
@@ -341,7 +448,7 @@ function Landing() {
             <p className="mt-3 text-muted-foreground">{t("home.featuredDesc")}</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {courses.map((c, i) => {
+            {coursesList.map((c, i) => {
               const Icon = c.icon;
               return (
                 <div
@@ -350,14 +457,18 @@ function Landing() {
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
                   <div className="mb-4 flex items-start justify-between">
-                    <div className="grid h-12 w-12 place-items-center rounded-xl bg-[image:var(--gradient-primary)] glow-primary">
-                      <Icon className="h-6 w-6 text-background" />
+                    <div className="grid h-12 w-12 overflow-hidden place-items-center rounded-xl bg-[image:var(--gradient-primary)] glow-primary">
+                      {c.thumbnail_url ? (
+                        <img src={c.thumbnail_url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Icon className="h-6 w-6 text-background" />
+                      )}
                     </div>
                     <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary-glow">
-                      {t(`home.tags.${c.tag}`)}
+                      {c.tag && t(`home.tags.${c.tag}`) !== `home.tags.${c.tag}` ? t(`home.tags.${c.tag}`) : (c.tag || "Course")}
                     </span>
                   </div>
-                  <h3 className="font-display text-xl font-semibold">{c.titleKey}</h3>
+                  <h3 className="font-display text-xl font-semibold">{c.title}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {t("common.by")} {c.instructor}
                   </p>
@@ -382,7 +493,7 @@ function Landing() {
                       </div>
                     </div>
                     <Button asChild size="sm" className="btn-glow text-primary-foreground">
-                      <Link to="/courses">
+                      <Link to={c.slug ? "/courses/$slug" : "/courses"} params={c.slug ? { slug: c.slug } : undefined}>
                         {t("home.enroll")} <ArrowRight className="h-3 w-3" />
                       </Link>
                     </Button>
@@ -438,39 +549,72 @@ function Landing() {
             <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{t("home.facultyDesc")}</p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {faculty.map((m, i) => (
+            {facultyList.map((m, i) => (
               <div
                 key={i}
-                className="card-3d card-3d-hover gradient-border group relative overflow-hidden rounded-2xl p-6"
+                className="card-3d card-3d-hover gradient-border group relative overflow-hidden rounded-2xl p-6 flex flex-col justify-between"
               >
                 <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[image:var(--gradient-primary)] opacity-20 blur-2xl transition-opacity group-hover:opacity-40" />
-                <div className="flex items-center gap-4">
-                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-[image:var(--gradient-primary)] font-display text-xl font-bold text-background glow-primary">
-                    {m.initials}
+                <div>
+                  <div className="flex items-center gap-4">
+                    {m.image ? (
+                      <img src={m.image} alt={m.name} className="h-16 w-16 rounded-2xl object-cover border border-white/10" />
+                    ) : (
+                      <div className={`grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br ${m.gradient || "from-blue-600 to-cyan-400"} font-display text-xl font-bold text-white glow-primary`}>
+                        {m.initials}
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-display text-lg font-semibold">{m.name}</h3>
+                      <p className="text-sm text-primary-glow">{m.role}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-display text-lg font-semibold">{m.name}</h3>
-                    <p className="text-sm text-primary-glow">{m.role}</p>
-                  </div>
+
+                  {m.focus ? (
+                    <p className="mt-4 text-sm text-muted-foreground/95 leading-relaxed min-h-[4.5rem]">
+                      {m.focus}
+                    </p>
+                  ) : (
+                    <div className="mt-5 space-y-1 text-sm text-muted-foreground">
+                      {m.company && (
+                        <div className="flex items-center gap-2">
+                          <Trophy className="h-3.5 w-3.5 text-primary-glow" /> {m.company}
+                        </div>
+                      )}
+                      {m.exp && (
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-3.5 w-3.5 text-primary-glow" /> {m.exp} {t("home.experience")}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="mt-5 space-y-1 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-3.5 w-3.5 text-primary-glow" /> {m.company}
+
+                {((m.expertise && m.expertise.length > 0) || m.linkedin) && (
+                  <div className="mt-6 flex items-center justify-between border-t border-border/40 pt-4 flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {m.expertise?.map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary-glow"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    {m.linkedin && (
+                      <a
+                        href={m.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-muted-foreground hover:bg-primary/20 hover:text-primary-glow transition-all"
+                        title="LinkedIn Profile"
+                      >
+                        <Linkedin className="h-4 w-4" />
+                      </a>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-3.5 w-3.5 text-primary-glow" /> {m.exp} {t("home.experience")}
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-border/40 pt-4">
-                  {m.expertise.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary-glow"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                )}
               </div>
             ))}
           </div>

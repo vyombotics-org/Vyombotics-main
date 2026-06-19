@@ -120,6 +120,10 @@ class QueryBuilder {
     return { data: data && data.length > 0 ? data[0] : null, error: null };
   }
 
+  then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+    return this.get().then(onfulfilled, onrejected);
+  }
+
   private async resolveJoins(items: any[]) {
     if (items.length === 0) return;
 
@@ -200,12 +204,17 @@ class WriteBuilder {
     const results: any[] = [];
     try {
       for (const p of payloads) {
-        if (p.id) {
-          const docRef = doc(db, this.table, p.id);
+        let docId = p.id;
+        if (!docId && (this.table === "user_roles" || this.table === "profiles") && p.user_id) {
+          docId = p.user_id;
+        }
+
+        if (docId) {
+          const docRef = doc(db, this.table, docId);
           const data = { ...p };
           delete data.id;
           await setDoc(docRef, data);
-          results.push({ id: p.id, ...data });
+          results.push({ id: docId, ...data });
         } else {
           const docRef = await addDoc(collectionRef, p);
           results.push({ id: docRef.id, ...p });
@@ -316,8 +325,9 @@ export const supabaseAdmin = {
 
     const proxy = new Proxy({} as any, {
       get(_, prop) {
-        if (prop in query) {
-          const val = (query as any)[prop];
+        const knownQueryMethods = ["select", "eq", "in", "order", "limit", "single", "maybeSingle", "then", "get"];
+        if (typeof prop === "string" && (knownQueryMethods.includes(prop) || prop in query)) {
+          const val = (query as any)[prop] || (QueryBuilder.prototype as any)[prop];
           if (typeof val === "function") {
             return (...args: any[]) => {
               const res = val.apply(query, args);
@@ -326,8 +336,9 @@ export const supabaseAdmin = {
           }
           return val;
         }
-        if (prop in write) {
-          const val = (write as any)[prop];
+        const knownWriteMethods = ["insert", "update", "delete", "upsert"];
+        if (typeof prop === "string" && (knownWriteMethods.includes(prop) || prop in write)) {
+          const val = (write as any)[prop] || (WriteBuilder.prototype as any)[prop];
           if (typeof val === "function") {
             return (...args: any[]) => {
               const res = val.apply(write, args);
