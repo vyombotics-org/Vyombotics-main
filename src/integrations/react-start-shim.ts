@@ -13,10 +13,13 @@ export function createServerFn(options: any = {}) {
     },
     handler(h: any) {
       const fn = async (input: any) => {
+        // Extract inner data payload if envelope exists (e.g. { data: payload })
+        const payload = input && typeof input === "object" && "data" in input ? input.data : input;
+        
         // Run input validation
-        let validatedInput = input;
+        let validatedInput = payload;
         if (this.validator) {
-          validatedInput = this.validator(input);
+          validatedInput = this.validator(payload);
         }
 
         // Run middleware mock context
