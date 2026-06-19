@@ -39,7 +39,9 @@ export function MediaUpload({
     setUploadProgress(0);
     try {
       if (useCloudinary) {
-        const downloadUrl = await uploadToCloudinary(file, folder);
+        const downloadUrl = await uploadToCloudinary(file, folder, (progress) => {
+          setUploadProgress(progress);
+        });
         onChange(downloadUrl);
         toast.success("Uploaded to Cloudinary");
       } else {

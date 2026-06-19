@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { storage } from "@/integrations/firebase/client";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import {
   getBatchAdmin,
   listLecturesForBatch,
@@ -94,37 +95,14 @@ function AdminLectures() {
     setUploading(true);
     setUploadProgress(0);
     try {
-      const ext = file.name.split(".").pop() || "mp4";
-      const path = `lecture-videos/${batchId}/${crypto.randomUUID()}.${ext}`;
-      const storageRef = ref(storage, path);
-      
-      const uploadTask = uploadBytesResumable(storageRef, file, {
-        contentType: file.type,
+      const downloadUrl = await uploadToCloudinary(file, `lecture-videos/${batchId}`, (progress) => {
+        setUploadProgress(progress);
       });
-
-      return new Promise<void>((resolve, reject) => {
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(Math.round(progress));
-          },
-          (error) => {
-            toast.error(error.message || "Upload failed");
-            setUploading(false);
-            reject(error);
-          },
-          async () => {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            setEditing({ ...editing, video_url: downloadUrl });
-            toast.success("Video uploaded successfully");
-            setUploading(false);
-            resolve();
-          }
-        );
-      });
+      setEditing({ ...editing, video_url: downloadUrl });
+      toast.success("Video uploaded successfully to Cloudinary");
     } catch (e: any) {
       toast.error(e?.message || "Upload failed");
+    } finally {
       setUploading(false);
     }
   }
