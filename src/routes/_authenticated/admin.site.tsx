@@ -307,6 +307,7 @@ function HeroEditor({
               accept="video/*"
               folder="hero-video"
               placeholder="Upload or paste video URL"
+              useCloudinary={true}
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Shown in the hero card on the home page. Leave empty for the gradient placeholder.
@@ -320,6 +321,7 @@ function HeroEditor({
               accept="image/*"
               folder="hero-video"
               placeholder="Upload or paste image URL"
+              useCloudinary={true}
             />
           </div>
         </div>
@@ -563,6 +565,7 @@ function AnnouncementsSectionEditor({
                     onChange={(url) => updateItem(i, { image: url })}
                     accept="image/*"
                     folder="announcements"
+                    useCloudinary={true}
                   />
                 </div>
                 <div className="flex justify-end">
@@ -714,6 +717,7 @@ function BatchAnnouncementsEditor({
                     onChange={(url) => updateItem(i, { image: url })}
                     accept="image/*"
                     folder="batch-announcements"
+                    useCloudinary={true}
                   />
                 </div>
                 <div className="flex justify-end">
@@ -851,6 +855,7 @@ function FloatingVideoEditor({
                   accept="video/*"
                   folder="floating-video"
                   placeholder="Paste video URL (.mp4/.webm) or upload"
+                  useCloudinary={true}
                 />
                 <div className="flex justify-end">
                   <Button variant="ghost" size="sm" onClick={() => removeClip(i)}>
@@ -1071,6 +1076,7 @@ function StemVoicesEditor({
                     onChange={(url) => updateItem(i, { thumb: url })}
                     accept="image/*"
                     folder="stem-voices"
+                    useCloudinary={true}
                   />
                 </div>
                 <div>
@@ -1500,6 +1506,7 @@ function FeedbackPageEditor({
                       onChange={(url) => updateItem(i, { image: url })}
                       accept="image/*"
                       folder="feedback"
+                      useCloudinary={true}
                     />
                   </div>
                 </div>

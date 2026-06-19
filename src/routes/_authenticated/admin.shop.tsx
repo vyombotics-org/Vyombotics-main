@@ -180,6 +180,7 @@ function AdminShop() {
                   onChange={(url) => setForm({ ...form, image_url: url })}
                   accept="image/*"
                   folder="shop"
+                  useCloudinary={true}
                 />
               </div>
               <div>
