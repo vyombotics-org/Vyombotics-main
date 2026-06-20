@@ -344,7 +344,7 @@ function Landing() {
             <div className="relative animate-float [perspective:1000px] order-2 md:order-1">
               <div className="absolute -inset-6 rounded-3xl bg-[image:var(--gradient-primary)] opacity-30 blur-3xl" />
               <div
-                className="card-3d gradient-border relative aspect-[4/3] overflow-hidden rounded-3xl"
+                className="card-3d gradient-border relative aspect-video overflow-hidden rounded-3xl"
                 style={{ transform: "rotateY(6deg) rotateX(4deg)" }}
               >
                 <VideoHero src={hero.video_url} poster={hero.video_poster} />
