@@ -338,66 +338,72 @@ function Landing() {
         {/* Floating 3D STEM icons across whole hero */}
         <Floating3DScene className="-z-10" />
 
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2 md:items-center">
-          <div className="animate-fade-up">
-            <div className="glass mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs text-muted-foreground">
-              <Sparkles className="h-3 w-3 text-primary-glow" />
-              {hero.badge ?? t("home.badge")}
-            </div>
-            {hero.title ? (
-              <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl gradient-text">
-                {hero.title}
-              </h1>
-            ) : (
-              <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
-                {t("home.heroTitle1")} <br />
-                {t("home.heroTitle2")}{" "}
-                <span className="gradient-text">{t("home.heroHighlight")}</span>
-              </h1>
-            )}
-            <p className="mt-6 max-w-md text-lg text-muted-foreground">
-              {hero.subtitle ?? t("home.heroDesc")}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="btn-glow text-primary-foreground">
-                <a href={hero.cta_href ?? "/auth?mode=signup"}>
-                  {hero.cta_text ?? t("home.startLearning")} <ArrowRight className="h-4 w-4" />
-                </a>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="glass">
-                <a href="#courses">
-                  <Play className="h-4 w-4" /> {t("home.exploreCourses")}
-                </a>
-              </Button>
-            </div>
-            <div className="mt-10 flex items-center gap-6 text-sm text-muted-foreground">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="h-8 w-8 rounded-full border-2 border-background bg-[image:var(--gradient-primary)]"
-                  />
-                ))}
+        <div className="relative mx-auto max-w-6xl px-6">
+          <div className="grid gap-12 md:grid-cols-2 md:items-center">
+            {/* Video column (left on desktop) */}
+            <div className="relative animate-float [perspective:1000px] order-2 md:order-1">
+              <div className="absolute -inset-6 rounded-3xl bg-[image:var(--gradient-primary)] opacity-30 blur-3xl" />
+              <div
+                className="card-3d gradient-border relative aspect-[4/3] overflow-hidden rounded-3xl"
+                style={{ transform: "rotateY(6deg) rotateX(4deg)" }}
+              >
+                <VideoHero src={hero.video_url} poster={hero.video_poster} />
               </div>
-              <div>
-                <div className="flex text-primary-glow">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <Star key={j} className="h-4 w-4 fill-current" />
+            </div>
+
+            {/* Text column (right on desktop) */}
+            <div className="animate-fade-up order-1 md:order-2">
+              <div className="glass mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs text-muted-foreground">
+                <Sparkles className="h-3 w-3 text-primary-glow" />
+                {hero.badge ?? t("home.badge")}
+              </div>
+              {hero.title ? (
+                <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl gradient-text">
+                  {hero.title}
+                </h1>
+              ) : (
+                <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
+                  {t("home.heroTitle1")} <br />
+                  {t("home.heroTitle2")}{" "}
+                  <span className="gradient-text">{t("home.heroHighlight")}</span>
+                </h1>
+              )}
+              <p className="mt-6 max-w-md text-lg text-muted-foreground">
+                {hero.subtitle ?? t("home.heroDesc")}
+              </p>
+              <div className="mt-10 flex items-center gap-6 text-sm text-muted-foreground">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="h-8 w-8 rounded-full border-2 border-background bg-[image:var(--gradient-primary)]"
+                    />
                   ))}
                 </div>
-                <div>{t("home.lovedBy")}</div>
+                <div>
+                  <div className="flex text-primary-glow">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} className="h-4 w-4 fill-current" />
+                    ))}
+                  </div>
+                  <div>{t("home.lovedBy")}</div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="relative animate-float [perspective:1000px]">
-            <div className="absolute -inset-6 rounded-3xl bg-[image:var(--gradient-primary)] opacity-30 blur-3xl" />
-            <div
-              className="card-3d gradient-border relative aspect-[4/3] overflow-hidden rounded-3xl"
-              style={{ transform: "rotateY(-6deg) rotateX(4deg)" }}
-            >
-              <VideoHero src={hero.video_url} poster={hero.video_poster} />
-            </div>
+          {/* Centered CTA Buttons */}
+          <div className="mt-12 flex flex-wrap justify-center gap-3 animate-fade-up" style={{ animationDelay: "0.2s" }}>
+            <Button asChild size="lg" className="btn-glow text-primary-foreground">
+              <a href={hero.cta_href ?? "/auth?mode=signup"}>
+                {hero.cta_text ?? t("home.startLearning")} <ArrowRight className="h-4 w-4" />
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="glass">
+              <a href="#courses">
+                <Play className="h-4 w-4" /> {t("home.exploreCourses")}
+              </a>
+            </Button>
           </div>
         </div>
       </section>
